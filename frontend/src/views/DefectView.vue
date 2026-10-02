@@ -142,6 +142,7 @@
 import { inject, onMounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { defectApi, inspectionApi } from '../api'
+import { buildDefectParams } from '../utils/defectQuery'
 
 const works = inject('works')
 const inspections = ref([])
@@ -169,9 +170,12 @@ async function loadInspections() {
 }
 
 async function loadDefects() {
-  const params = {}
-  if (severity.value) params.severity = severity.value
-  if (closed.value !== '' && closed.value !== null && closed.value !== undefined) params.closed = closed.value
+  // 区段（左侧全局上下文）+ 严重等级 + 销号状态组合筛选；未选区段查全线路
+  const params = buildDefectParams({
+    sectionId: works.sectionId.value,
+    severity: severity.value,
+    closed: closed.value
+  })
   defects.value = await defectApi.list(params)
 }
 
