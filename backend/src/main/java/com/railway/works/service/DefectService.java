@@ -51,27 +51,13 @@ public class DefectService {
         this.handoverService = handoverService;
     }
 
-    /** 病害清单：可按区段、严重等级、是否销号筛选 */
+    /** 病害清单：区段、严重等级、是否销号三个条件任意组合；任一条件为 null 即不过滤该维度 */
     @Transactional(readOnly = true)
     public List<Views.DefectView> list(Long sectionId, String severity, Boolean closed) {
-        List<Defect> defects;
-        if (sectionId != null) {
-            defects = defectRepository.findAllBySectionIdOrderByMileageAsc(sectionId);
-        } else if (severity != null && !severity.isBlank()) {
-            defects = defectRepository.findAllBySeverityOrderByFoundDateAsc(severity);
-        } else if (closed != null) {
-            defects = defectRepository.findAllByClosedOrderByFoundDateAsc(closed);
-        } else {
-            defects = defectRepository.findAllByOrderByFoundDateDesc();
-        }
+        String level = (severity == null || severity.isBlank()) ? null : severity.trim();
+        List<Defect> defects = defectRepository.search(sectionId, level, closed);
         List<Views.DefectView> list = new ArrayList<>();
         for (Defect defect : defects) {
-            if (severity != null && !severity.isBlank() && !severity.equals(defect.getSeverity())) {
-                continue;
-            }
-            if (closed != null && !closed.equals(Boolean.TRUE.equals(defect.getClosed()))) {
-                continue;
-            }
             list.add(viewSupport.toView(defect));
         }
         return list;

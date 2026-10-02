@@ -170,6 +170,8 @@ async function loadInspections() {
 
 async function loadDefects() {
   const params = {}
+  // 区段、等级、销号状态三个条件相互独立、可任意组合；未选区段时不传，即查全线路
+  if (works.sectionId.value) params.sectionId = works.sectionId.value
   if (severity.value) params.severity = severity.value
   if (closed.value !== '' && closed.value !== null && closed.value !== undefined) params.closed = closed.value
   defects.value = await defectApi.list(params)
